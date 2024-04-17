@@ -1,6 +1,13 @@
 import drawLine from "./drawLine";
 import drawRectangle from "./drawRectangle";
-import { InitCoord, Shape, ShapesEnum } from "../types";
+import {
+  InitCoord,
+  LineCoord,
+  RectangleCoord,
+  Shape,
+  ShapesEnum,
+} from "../types";
+import { MutableRefObject } from "react";
 
 function drawShapes(
   context: CanvasRenderingContext2D,
@@ -8,39 +15,48 @@ function drawShapes(
   event: MouseEvent,
   initCoord: InitCoord,
   shapeId: string,
-  updateShapesMap: (id: string, shape: Shape<ShapesEnum>) => void
+  movedShape: MutableRefObject<Shape<ShapesEnum>> | MutableRefObject<undefined>
 ) {
   const { x: x1, y: y1 } = initCoord;
   const { offsetX: x2, offsetY: y2 } = event;
 
   switch (toDraw) {
     case ShapesEnum.Rectangle: {
+      const coordinates: Array<RectangleCoord> = [
+        {
+          x1,
+          y1,
+          width: x2 - x1,
+          height: y2 - y1,
+        },
+      ];
+
       const rectangle: Shape<ShapesEnum.Rectangle> = {
-        height: y2 - y1,
-        width: x2 - x1,
-        type: ShapesEnum.Rectangle,
-        x1,
-        y1,
         id: shapeId,
+        type: ShapesEnum.Rectangle,
+        coordinates,
       };
 
       drawRectangle(context, rectangle);
-      updateShapesMap(shapeId, rectangle);
+
+      if (movedShape) movedShape.current = rectangle;
+
       break;
     }
 
     case ShapesEnum.Line: {
+      const coordinates: Array<LineCoord> = [{ x1, x2, y1, y2 }];
+
       const line: Shape<ShapesEnum.Line> = {
         id: shapeId,
         type: ShapesEnum.Line,
-        x1,
-        x2,
-        y1,
-        y2,
+        coordinates,
       };
 
       drawLine(context, line);
-      updateShapesMap(shapeId, line);
+
+      if (movedShape) movedShape.current = line;
+
       break;
     }
 

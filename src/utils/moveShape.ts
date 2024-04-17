@@ -3,6 +3,7 @@ import { MutableRefObject } from "react";
 import { SelectedShape, Shape, ShapesEnum } from "../types";
 import drawLine from "./drawLine";
 import drawRectangle from "./drawRectangle";
+import { isLineSelected, isRectangleSelected } from "./typeGuards";
 
 let delta: number = 0;
 let deltaX: number = 0;
@@ -12,18 +13,21 @@ function moveShape(
   shape: SelectedShape<ShapesEnum>,
   event: MouseEvent,
   context: CanvasRenderingContext2D,
-  once: MutableRefObject<boolean>,
-  setShapes: (shapeId: string, shape: Shape<ShapesEnum>) => void
+  once: MutableRefObject<boolean>
 ) {
   if (!once.current) {
     calculateDelta(shape, event, once);
   }
 
-  if (shape.type === ShapesEnum.Rectangle) {
-    moveRectangle(shape, event, context, setShapes);
+  let shapeMoved: Shape<ShapesEnum> | undefined;
+
+  if (isRectangleSelected(shape)) {
+    shapeMoved = moveRectangle(shape, event, context);
   } else if (shape.type === ShapesEnum.Line) {
-    moveLine(shape, event, context, setShapes);
+    shapeMoved = moveLine(shape, event, context);
   }
+
+  return shapeMoved;
 }
 
 function calculateDelta(
@@ -31,9 +35,10 @@ function calculateDelta(
   event: MouseEvent,
   once: MutableRefObject<boolean>
 ) {
-  if (shape.type === ShapesEnum.Rectangle) {
+  if (isRectangleSelected(shape)) {
     const { offsetX, offsetY } = event;
-    const { x1, y1, activeEdge } = shape as SelectedShape<ShapesEnum.Rectangle>;
+    const { activeEdge, coordinates } = shape;
+    const { x1, y1 } = coordinates[coordinates.length - 1];
 
     if (activeEdge === "left" || activeEdge === "right") {
       delta = offsetY - y1;
@@ -43,24 +48,26 @@ function calculateDelta(
       delta = offsetX - x1;
     }
   } else if (shape.type === ShapesEnum.Line) {
-    const { x1, y1 } = shape;
-    const { offsetX, offsetY } = event;
+    if (isLineSelected(shape)) {
+      const { coordinates } = shape;
+      const { offsetX, offsetY } = event;
+      const { x1, y1 } = coordinates[coordinates.length - 1];
 
-    deltaX = offsetX - x1;
-    deltaY = offsetY - y1;
+      deltaX = offsetX - x1;
+      deltaY = offsetY - y1;
+    }
   }
 
   once.current = true;
 }
 
 function moveRectangle(
-  shape: SelectedShape<ShapesEnum>,
+  shape: SelectedShape<ShapesEnum.Rectangle>,
   event: MouseEvent,
-  context: CanvasRenderingContext2D,
-  setShapes: (shapeId: string, shape: Shape<ShapesEnum>) => void
-) {
-  const { width, height, activeEdge, type } =
-    shape as SelectedShape<ShapesEnum.Rectangle>;
+  context: CanvasRenderingContext2D
+): Shape<ShapesEnum.Rectangle> {
+  const { coordinates, activeEdge, type } = shape;
+  const { width, height } = coordinates[coordinates.length - 1];
 
   const { offsetX, offsetY } = event;
 
@@ -90,30 +97,30 @@ function moveRectangle(
       break;
     }
     default:
-      return;
+      break;
   }
 
-  const rectangle = {
-    x1: newX1,
-    y1: newY1,
-    width,
-    height,
+  const rectangle: Shape<ShapesEnum.Rectangle> = {
     type,
     id: shape.id,
+    coordinates: [
+      ...shape.coordinates,
+      { x1: newX1, y1: newY1, width, height },
+    ],
   };
 
   drawRectangle(context, rectangle);
-  setShapes(shape.id, rectangle);
+  return rectangle;
 }
 
 function moveLine(
   shape: SelectedShape<ShapesEnum>,
   event: MouseEvent,
-  context: CanvasRenderingContext2D,
-  setShapes: (shapeId: string, shape: Shape<ShapesEnum>) => void
-) {
-  const { x1, y1, x2, y2, id, type } = shape as Shape<ShapesEnum.Line>;
+  context: CanvasRenderingContext2D
+): Shape<ShapesEnum.Line> {
+  const { coordinates, id, type } = shape as Shape<ShapesEnum.Line>;
   const { offsetX, offsetY } = event;
+  const { x1, x2, y1, y2 } = coordinates[coordinates.length - 1];
 
   const newX1 = offsetX - deltaX;
   const newY1 = offsetY - deltaY;
@@ -121,10 +128,17 @@ function moveLine(
   const newX2 = newX1 + (x2 - x1);
   const newY2 = newY1 + (y2 - y1);
 
-  const line = { id, x1: newX1, x2: newX2, y1: newY1, y2: newY2, type };
+  const line = {
+    id,
+    type,
+    coordinates: [
+      ...coordinates,
+      { x1: newX1, x2: newX2, y1: newY1, y2: newY2 },
+    ],
+  };
 
   drawLine(context, line);
-  setShapes(id, line);
+  return line;
 }
 
 export default moveShape;

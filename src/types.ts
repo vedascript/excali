@@ -30,22 +30,25 @@ export type CanvasConfig = {
   context: CanvasRenderingContext2D | null;
 };
 
-export type Rectangle = {
-  type: ShapesEnum.Rectangle;
+export type RectangleCoord = {
+  x1: number;
+  y1: number;
   width: number;
   height: number;
 };
+export type LineCoord = { x1: number; y1: number; x2: number; y2: number };
+
+export type Rectangle = {
+  coordinates: Array<RectangleCoord>;
+};
 
 export type Line = {
-  type: ShapesEnum.Line;
-  x2: number;
-  y2: number;
+  coordinates: Array<LineCoord>;
 };
 
 export type Shape<T extends ShapesEnum> = {
   id: string;
-  x1: number;
-  y1: number;
+  type: T;
 } & (T extends ShapesEnum.Rectangle
   ? Rectangle
   : T extends ShapesEnum.Line

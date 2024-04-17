@@ -4,7 +4,8 @@ function drawRectangle(
   context: CanvasRenderingContext2D,
   rectangle: Shape<ShapesEnum.Rectangle>
 ) {
-  const { x1, y1, width, height } = rectangle;
+  const { coordinates } = rectangle;
+  const { x1, y1, width, height } = coordinates[coordinates.length - 1];
   context.beginPath();
   context.rect(x1, y1, width, height);
   context.stroke();

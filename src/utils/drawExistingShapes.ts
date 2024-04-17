@@ -1,6 +1,7 @@
 import drawLine from "./drawLine";
 import drawRectangle from "./drawRectangle";
 import { Shape, ShapesEnum } from "../types";
+import { isLine, isRectangle } from "./typeGuards";
 
 function drawExistingShapes(
   shapesMap: Map<string, Shape<ShapesEnum>>,
@@ -16,12 +17,16 @@ function drawExistingShapes(
 
     switch (shape.type) {
       case ShapesEnum.Rectangle: {
-        drawRectangle(context, shape);
+        if (isRectangle(shape)) {
+          drawRectangle(context, shape);
+        }
         break;
       }
 
       case ShapesEnum.Line: {
-        drawLine(context, shape);
+        if (isLine(shape)) {
+          drawLine(context, shape);
+        }
         break;
       }
 

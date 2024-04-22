@@ -34,6 +34,8 @@ const Toolbar: FC<Props> = ({ activeShape, setToDraw }) => {
       >
         <img src={straightLine} />
       </button>
+
+      <button onClick={() => setShapeToDraw(ShapesEnum.Text)}>Text</button>
     </div>
   );
 };

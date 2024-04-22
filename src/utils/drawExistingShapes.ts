@@ -1,7 +1,8 @@
 import drawLine from "./drawLine";
 import drawRectangle from "./drawRectangle";
 import { Shape, ShapesEnum } from "../types";
-import { isLine, isRectangle } from "./typeGuards";
+import { isLine, isRectangle, isText } from "./typeGuards";
+import drawText from "./drawText";
 
 function drawExistingShapes(
   shapesMap: Map<string, Shape<ShapesEnum>>,
@@ -27,6 +28,15 @@ function drawExistingShapes(
         if (isLine(shape)) {
           drawLine(context, shape);
         }
+        break;
+      }
+
+      case ShapesEnum.Text: {
+        if (isText(shape)) {
+          const { x, y } = shape.coordinates[shape.coordinates.length - 1];
+          drawText(context, shape.text, x, y);
+        }
+
         break;
       }
 

@@ -3,7 +3,13 @@ import { MutableRefObject } from "react";
 import { SelectedShape, Shape, ShapesEnum } from "../types";
 import drawLine from "./drawLine";
 import drawRectangle from "./drawRectangle";
-import { isLineSelected, isRectangleSelected } from "./typeGuards";
+import {
+  isLineSelected,
+  isRectangleSelected,
+  isText,
+  isTextSelected,
+} from "./typeGuards";
+import drawText from "./drawText";
 
 let delta: number = 0;
 let deltaX: number = 0;
@@ -23,8 +29,10 @@ function moveShape(
 
   if (isRectangleSelected(shape)) {
     shapeMoved = moveRectangle(shape, event, context);
-  } else if (shape.type === ShapesEnum.Line) {
+  } else if (isLineSelected(shape)) {
     shapeMoved = moveLine(shape, event, context);
+  } else if (isTextSelected(shape)) {
+    shapeMoved = moveText(shape, event, context);
   }
 
   return shapeMoved;
@@ -55,6 +63,14 @@ function calculateDelta(
 
       deltaX = offsetX - x1;
       deltaY = offsetY - y1;
+    }
+  } else if (shape.type === ShapesEnum.Text) {
+    if (isText(shape)) {
+      const { coordinates } = shape;
+      const { offsetX } = event;
+      const { x } = coordinates[coordinates.length - 1];
+
+      delta = offsetX - x;
     }
   }
 
@@ -114,11 +130,11 @@ function moveRectangle(
 }
 
 function moveLine(
-  shape: SelectedShape<ShapesEnum>,
+  shape: SelectedShape<ShapesEnum.Line>,
   event: MouseEvent,
   context: CanvasRenderingContext2D
 ): Shape<ShapesEnum.Line> {
-  const { coordinates, id, type } = shape as Shape<ShapesEnum.Line>;
+  const { coordinates, id, type } = shape;
   const { offsetX, offsetY } = event;
   const { x1, x2, y1, y2 } = coordinates[coordinates.length - 1];
 
@@ -139,6 +155,26 @@ function moveLine(
 
   drawLine(context, line);
   return line;
+}
+
+function moveText(
+  shape: SelectedShape<ShapesEnum.Text>,
+  event: MouseEvent,
+  context: CanvasRenderingContext2D
+): Shape<ShapesEnum.Text> {
+  const { text } = shape;
+  const { offsetX, offsetY } = event;
+
+  const newX = offsetX - delta;
+  const newY = offsetY;
+
+  const textShape = {
+    ...shape,
+    coordinates: [...shape.coordinates, { x: newX, y: newY }],
+  };
+
+  drawText(context, text, newX, newY);
+  return textShape;
 }
 
 export default moveShape;

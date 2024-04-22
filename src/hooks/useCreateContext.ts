@@ -1,5 +1,6 @@
 import {
   Dispatch,
+  MutableRefObject,
   RefObject,
   SetStateAction,
   useEffect,
@@ -11,8 +12,10 @@ import { v4 as uuidv4 } from "uuid";
 import {
   drawExistingShapes,
   drawShapes,
+  getTypingArea,
   isLine,
   isRectangle,
+  isText,
   moveShape,
 } from "../utils";
 import {
@@ -24,11 +27,13 @@ import {
   ShapesMap,
   initDrawingConfig,
 } from "../types";
+import drawText from "../utils/drawText";
 
 function useCreateContext(
   canvasRef: RefObject<HTMLCanvasElement>,
   drawingConfig: DrawingConfig,
   shapesMap: ShapesMap,
+  activeShapeIds: MutableRefObject<string[]>,
   setShapesMap: (map: ShapesMap) => void,
   setDrawingConfig: Dispatch<SetStateAction<DrawingConfig>>
 ) {
@@ -55,14 +60,16 @@ function useCreateContext(
       }));
 
       shapeId.current = uuidv4();
+
+      if (toDraw === ShapesEnum.Text) {
+        handleDrawText(event, shapeId.current);
+      }
     }
 
     if (selectedShapeConfig && canvasConfig.context) {
       setSelectedShapeConfig({ ...selectedShapeConfig, isActive: true });
     }
   }
-
-  // draw
 
   function handleMouseMove(event: MouseEvent) {
     const { context, canvasHeight, canvasWidth } = canvasConfig;
@@ -103,18 +110,16 @@ function useCreateContext(
   function handleMouseUp() {
     const { context } = canvasConfig;
 
-    if (context && isDrawing) {
+    if (context && isDrawing && activeShape.current) {
       setDrawingConfig(initDrawingConfig);
       context?.closePath();
       shapeId.current = "";
 
-      activeShape.current &&
-        setShapesMap(
-          shapesMap.set(activeShape.current.id, activeShape.current)
-        );
+      setShapesMap(shapesMap.set(activeShape.current.id, activeShape.current));
 
+      activeShapeIds.current.push(activeShape.current.id);
       activeShape.current = undefined;
-    } else if (selectedShapeConfig?.isActive) {
+    } else if (selectedShapeConfig?.isActive && activeShape.current) {
       setSelectedShapeConfig(undefined);
       once.current = false;
       document.body.style.cursor = "default";
@@ -123,10 +128,38 @@ function useCreateContext(
         setShapesMap(
           shapesMap.set(selectedShapeConfig.id, activeShape.current)
         );
+
+      activeShapeIds.current.push(activeShape.current.id);
       activeShape.current = undefined;
     }
   }
-  console.log({ shapesMap });
+
+  function handleDrawText(event: MouseEvent, shapeId: string) {
+    const { typingArea, x1, y1 } = getTypingArea(event);
+
+    typingArea.addEventListener("blur", () => {
+      if (!canvasConfig.context) return;
+
+      drawText(canvasConfig.context, typingArea.innerText, x1, y1);
+
+      setShapesMap(
+        shapesMap.set(shapeId, {
+          id: shapeId,
+          type: ShapesEnum.Text,
+          coordinates: [{ x: x1, y: event.offsetY }],
+          text: typingArea.innerText,
+          width: typingArea.clientWidth,
+          height: typingArea.clientHeight,
+        })
+      );
+
+      typingArea.remove();
+      activeShapeIds.current.push(shapeId);
+    });
+
+    setDrawingConfig(initDrawingConfig);
+  }
+
   useEffect(() => {
     const canvas: HTMLCanvasElement | null = canvasRef?.current;
 
@@ -205,7 +238,7 @@ function hoverOverShapes(
             document.body.style.cursor = "move";
             selectedShape.activeEdge = "left";
             selectShapeToMove(selectedShape);
-            console.log("left edge");
+
             return;
           } else if (
             (currentX === x2 || (currentX >= x2 - 10 && currentX <= x2 + 10)) &&
@@ -262,6 +295,29 @@ function hoverOverShapes(
               document.body.style.cursor = "default";
               selectShapeToMove(undefined);
             }
+          }
+        }
+        break;
+      }
+
+      case ShapesEnum.Text: {
+        if (isText(shape)) {
+          const { offsetX, offsetY } = event;
+          const { coordinates } = shape;
+          const { x, y } = coordinates[coordinates.length - 1];
+
+          if (
+            offsetX >= x &&
+            offsetX <= x + shape.width &&
+            offsetY >= y - 16 &&
+            offsetY <= y - 16 + shape.height
+          ) {
+            document.body.style.cursor = "move";
+            selectShapeToMove({ ...shape, isActive: false });
+            return;
+          } else {
+            document.body.style.cursor = "default";
+            selectShapeToMove(undefined);
           }
         }
         break;

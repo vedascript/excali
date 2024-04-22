@@ -6,6 +6,7 @@ export type TContextConfig = {
 export enum ShapesEnum {
   Rectangle = "rectanlge",
   Line = "line",
+  Text = "text",
 }
 
 export type InitCoord = { x: number; y: number };
@@ -46,6 +47,13 @@ export type Line = {
   coordinates: Array<LineCoord>;
 };
 
+export type Text = {
+  coordinates: Array<{ x: number; y: number }>;
+  text: string;
+  width: number;
+  height: number;
+};
+
 export type Shape<T extends ShapesEnum> = {
   id: string;
   type: T;
@@ -53,6 +61,8 @@ export type Shape<T extends ShapesEnum> = {
   ? Rectangle
   : T extends ShapesEnum.Line
   ? Line
+  : T extends ShapesEnum.Text
+  ? Text
   : object);
 
 export enum ActionEnum {
@@ -70,3 +80,7 @@ export type SelectedShape<T extends ShapesEnum> = {
   (T extends ShapesEnum.Rectangle ? SelectedRectangle : object);
 
 export type ShapesMap = Map<string, Shape<ShapesEnum>>;
+
+export type RedoShape = Omit<Shape<ShapesEnum>, "coordinates"> & {
+  coordinate: RectangleCoord | LineCoord;
+};

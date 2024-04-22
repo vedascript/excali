@@ -2,7 +2,16 @@ import { useRef, useState } from "react";
 
 import { Toolbar } from "./components";
 import { useCreateContext } from "./hooks";
-import { DrawingConfig, ShapesMap, initDrawingConfig } from "./types";
+import {
+  DrawingConfig,
+  LineCoord,
+  RectangleCoord,
+  RedoShape,
+  Shape,
+  ShapesEnum,
+  ShapesMap,
+  initDrawingConfig,
+} from "./types";
 import drawExistingShapes from "./utils/drawExistingShapes";
 
 import "./App.css";
@@ -12,49 +21,95 @@ function App() {
     useState<DrawingConfig>(initDrawingConfig);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [redoShapes, setRedoShapes] = useState<ShapesMap>(new Map());
+  const activeShapeIds = useRef<string[]>([]);
+
   const [shapesMap, setShapesMap] = useState<ShapesMap>(new Map());
+  const [redoShapes, setRedoShapes] = useState<Array<RedoShape>>([]);
 
   const { context, canvasHeight, canvasWidth } = useCreateContext(
     canvasRef,
     drawingConfig,
     shapesMap,
+    activeShapeIds,
     setShapesMap,
     setDrawingConfig
   );
 
   function undo(shapes: ShapesMap, context: CanvasRenderingContext2D | null) {
-    if (shapes.size && context) {
-      const shapesArr = Array.from(shapes.entries());
-      const undoneShape = shapesArr.pop();
+    if (!canUndo(shapes, context)) return;
+    const activeShapeId = activeShapeIds.current.pop() as string;
+    const shapesMapClone = new Map(shapes);
+    const activeShape = shapesMapClone.get(activeShapeId) as Shape<ShapesEnum>;
+    const undoCoordinate = activeShape.coordinates.pop();
 
-      if (undoneShape) {
-        setRedoShapes(redoShapes.set(undoneShape[0], undoneShape[1]));
-      }
+    if (!undoCoordinate) return;
 
-      const updatedShapesMap = new Map(shapesArr);
-      setShapesMap(updatedShapesMap);
-
-      context.clearRect(0, 0, canvasWidth, canvasHeight);
-      drawExistingShapes(updatedShapesMap, context);
+    if (!activeShape.coordinates.length) {
+      shapesMapClone.delete(activeShapeId);
     }
+
+    redrawCanvas(context as CanvasRenderingContext2D, shapesMapClone);
+    updateRedoShape(undoCoordinate as RectangleCoord | LineCoord, activeShape);
+    setShapesMap(shapesMapClone);
+  }
+
+  function canUndo(
+    shapes: ShapesMap,
+    context: CanvasRenderingContext2D | null
+  ) {
+    console.log(shapes.size, activeShapeIds.current.length);
+    return shapes.size && context && activeShapeIds.current.length;
+  }
+
+  function redrawCanvas(context: CanvasRenderingContext2D, shapes: ShapesMap) {
+    context.clearRect(0, 0, canvasWidth, canvasHeight);
+    drawExistingShapes(shapes, context);
+  }
+
+  function updateRedoShape(
+    undoCoordinates: RectangleCoord | LineCoord,
+    activeShape: Shape<ShapesEnum>
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { coordinates, ...activeShapeWithouthCoordinates } = activeShape;
+
+    const shape: RedoShape = {
+      ...activeShapeWithouthCoordinates,
+      coordinate: undoCoordinates,
+    };
+
+    setRedoShapes([...redoShapes, shape]);
   }
 
   function redo() {
-    if (redoShapes.size && context) {
-      const redoShapesArr = Array.from(redoShapes.entries());
-      const shapeToRedo = redoShapesArr.pop();
+    if (!redoShapes.length) return;
 
-      setRedoShapes(new Map(redoShapesArr));
+    const shapesToRedo = [...redoShapes];
+    const redoShape = shapesToRedo.pop() as RedoShape;
 
-      if (shapeToRedo) {
-        const updatedShapesMap = shapesMap.set(shapeToRedo[0], shapeToRedo[1]);
-        setShapesMap(updatedShapesMap);
+    const shapesMapClone = getUpdatedShapesMap(redoShape);
+    redrawCanvas(context as CanvasRenderingContext2D, shapesMapClone);
+    setShapesMap(shapesMapClone);
+    setRedoShapes(shapesToRedo);
 
-        context.clearRect(0, 0, canvasWidth, canvasHeight);
-        drawExistingShapes(updatedShapesMap, context);
-      }
-    }
+    activeShapeIds.current.push(redoShape.id);
+  }
+
+  function getUpdatedShapesMap(redoShape: RedoShape): ShapesMap {
+    const shapesMapClone = new Map(shapesMap);
+    const existingShape = shapesMapClone.get(redoShape.id) as Shape<ShapesEnum>;
+
+    shapesMapClone.set(redoShape.id, {
+      ...redoShape,
+      coordinates: existingShape
+        ? ([
+            ...existingShape.coordinates,
+            redoShape.coordinate,
+          ] as RectangleCoord[])
+        : ([redoShape.coordinate] as RectangleCoord[]),
+    });
+
+    return shapesMapClone;
   }
 
   return (
@@ -63,7 +118,7 @@ function App() {
         activeShape={drawingConfig.toDraw}
         setToDraw={setDrawingConfig}
       />
-      <button onClick={() => undo(shapesMap, context)}>undo</button>
+      <button onClick={() => undo(shapesMap, context)}>undo</button>{" "}
       <button onClick={redo}>redo</button>
       <canvas ref={canvasRef}></canvas>
     </>

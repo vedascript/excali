@@ -5,6 +5,7 @@ import { useCreateContext } from "./hooks";
 import {
   DrawingConfig,
   LineCoord,
+  PenCoordinate,
   RectangleCoord,
   RedoShape,
   Shape,
@@ -15,6 +16,7 @@ import {
 import drawExistingShapes from "./utils/drawExistingShapes";
 
 import "./App.css";
+import { isNotPen, isPen, isRedoShapePen } from "./utils";
 
 function App() {
   const [drawingConfig, setDrawingConfig] =
@@ -40,7 +42,30 @@ function App() {
     const activeShapeId = activeShapeIds.current.pop() as string;
     const shapesMapClone = new Map(shapes);
     const activeShape = shapesMapClone.get(activeShapeId) as Shape<ShapesEnum>;
-    const undoCoordinate = activeShape.coordinates.pop();
+
+    // if (isPen(activeShape)) {
+    //   setRedoShapes([...redoShapes, activeShape]);
+
+    //   shapesMapClone.delete(activeShapeId);
+    //   setShapesMap(shapesMapClone);
+
+    //   redrawCanvas(context as CanvasRenderingContext2D, shapesMapClone);
+
+    //   return;
+    // }
+
+    let undoCoordinate:
+      | RectangleCoord
+      | LineCoord
+      | PenCoordinate[]
+      | undefined;
+
+    if (isPen(activeShape)) {
+      undoCoordinate = [...activeShape.coordinates];
+      activeShape.coordinates = [];
+    } else if (isNotPen(activeShape)) {
+      undoCoordinate = activeShape.coordinates.pop();
+    }
 
     if (!undoCoordinate) return;
 
@@ -49,7 +74,10 @@ function App() {
     }
 
     redrawCanvas(context as CanvasRenderingContext2D, shapesMapClone);
-    updateRedoShape(undoCoordinate as RectangleCoord | LineCoord, activeShape);
+    updateRedoShape(
+      undoCoordinate as RectangleCoord | LineCoord | PenCoordinate[],
+      activeShape
+    );
     setShapesMap(shapesMapClone);
   }
 
@@ -57,7 +85,6 @@ function App() {
     shapes: ShapesMap,
     context: CanvasRenderingContext2D | null
   ) {
-    console.log(shapes.size, activeShapeIds.current.length);
     return shapes.size && context && activeShapeIds.current.length;
   }
 
@@ -67,7 +94,7 @@ function App() {
   }
 
   function updateRedoShape(
-    undoCoordinates: RectangleCoord | LineCoord,
+    undoCoordinates: RectangleCoord | LineCoord | PenCoordinate[],
     activeShape: Shape<ShapesEnum>
   ) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -99,15 +126,23 @@ function App() {
     const shapesMapClone = new Map(shapesMap);
     const existingShape = shapesMapClone.get(redoShape.id) as Shape<ShapesEnum>;
 
-    shapesMapClone.set(redoShape.id, {
-      ...redoShape,
-      coordinates: existingShape
-        ? ([
-            ...existingShape.coordinates,
-            redoShape.coordinate,
-          ] as RectangleCoord[])
-        : ([redoShape.coordinate] as RectangleCoord[]),
-    });
+    if (isRedoShapePen(redoShape)) {
+      const penCoordinates = redoShape.coordinate as PenCoordinate[];
+      shapesMapClone.set(redoShape.id, {
+        ...redoShape,
+        coordinates: penCoordinates,
+      });
+    } else {
+      shapesMapClone.set(redoShape.id, {
+        ...redoShape,
+        coordinates: existingShape
+          ? ([
+              ...existingShape.coordinates,
+              redoShape.coordinate,
+            ] as RectangleCoord[])
+          : ([redoShape.coordinate] as RectangleCoord[]),
+      });
+    }
 
     return shapesMapClone;
   }

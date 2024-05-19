@@ -1,4 +1,4 @@
-import { SelectedShape, Shape, ShapesEnum } from "../types";
+import { RedoShape, SelectedShape, Shape, ShapesEnum } from "../types";
 
 export function isRectangle(
   shape: Shape<ShapesEnum>
@@ -16,6 +16,24 @@ export function isText(
   shape: Shape<ShapesEnum>
 ): shape is Shape<ShapesEnum.Text> {
   return shape.type === ShapesEnum.Text;
+}
+
+export function isPen(
+  shape: Shape<ShapesEnum>
+): shape is Shape<ShapesEnum.Pen> {
+  return shape.type === ShapesEnum.Pen;
+}
+
+export function isNotPen(
+  shape: Shape<ShapesEnum>
+): shape is Shape<ShapesEnum.Rectangle | ShapesEnum.Line> {
+  return shape.type !== ShapesEnum.Pen;
+}
+
+export function isRedoShapePen(
+  shape: RedoShape
+): shape is RedoShape & { type: ShapesEnum.Pen } {
+  return shape.type === ShapesEnum.Pen;
 }
 
 export function isRectangleSelected(

@@ -36,6 +36,8 @@ const Toolbar: FC<Props> = ({ activeShape, setToDraw }) => {
       </button>
 
       <button onClick={() => setShapeToDraw(ShapesEnum.Text)}>Text</button>
+
+      <button onClick={() => setShapeToDraw(ShapesEnum.Pen)}>Pen</button>
     </div>
   );
 };

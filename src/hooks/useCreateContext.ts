@@ -21,6 +21,7 @@ import {
 import {
   CanvasConfig,
   DrawingConfig,
+  PenCoordinate,
   SelectedShape,
   Shape,
   ShapesEnum,
@@ -50,6 +51,7 @@ function useCreateContext(
   const shapeId = useRef<string>("");
   const once = useRef<boolean>(false);
   const activeShape = useRef<Shape<ShapesEnum>>();
+  const penCoordinates = useRef<Array<PenCoordinate>>([]);
 
   function handleMouseDown(event: MouseEvent) {
     if (toDraw) {
@@ -63,6 +65,28 @@ function useCreateContext(
 
       if (toDraw === ShapesEnum.Text) {
         handleDrawText(event, shapeId.current);
+      } else if (toDraw === ShapesEnum.Pen && canvasConfig.context) {
+        //   const { context, canvasHeight, canvasWidth } = canvasConfig;
+        penCoordinates.current = [{ x: event.offsetX, y: event.offsetY }];
+
+        // canvasConfig.context.beginPath();
+        // canvasConfig.context.moveTo(event.offsetX, event.offsetY);
+
+        // canvasConfig.context.moveTo(200, 400);
+        //   context.clearRect(0, 0, canvasWidth, canvasHeight);
+        //   drawExistingShapes(shapesMap, context);
+
+        //   penCoordinates.current.push({ x: event.offsetX, y: event.offsetY });
+        //   context.beginPath();
+        //   context.moveTo(
+        //     penCoordinates.current[0].x,
+        //     penCoordinates.current[0].y
+        //   );
+
+        //   penCoordinates.current.forEach((point) => {
+        //     context.lineTo(point.x, point.y);
+        //     context.stroke();
+        //   });
       }
     }
 
@@ -76,17 +100,36 @@ function useCreateContext(
 
     if (isDrawing && context && toDraw) {
       context.clearRect(0, 0, canvasWidth, canvasHeight);
-
       drawExistingShapes(shapesMap, context);
 
-      drawShapes(
-        context,
-        toDraw,
-        event,
-        initCoord,
-        shapeId.current,
-        activeShape
-      );
+      if (toDraw === ShapesEnum.Pen) {
+        penCoordinates.current.push({ x: event.offsetX, y: event.offsetY });
+        context.beginPath();
+        context.moveTo(
+          penCoordinates.current[0].x,
+          penCoordinates.current[0].y
+        );
+        penCoordinates.current.forEach((point) => {
+          context.lineTo(point.x, point.y);
+          context.stroke();
+        });
+        const pen: Shape<ShapesEnum.Pen> = {
+          id: shapeId.current,
+          coordinates: penCoordinates.current,
+          type: ShapesEnum.Pen,
+        };
+        activeShape.current = pen;
+      } else {
+        drawShapes(
+          context,
+          toDraw,
+          event,
+          initCoord,
+          shapeId.current,
+          activeShape,
+          penCoordinates.current
+        );
+      }
     }
 
     if (!isDrawing) {
@@ -101,24 +144,28 @@ function useCreateContext(
         );
 
         drawExistingShapes(shapesMap, context, selectedShapeConfig.id);
-      } else {
+      } else if (shapesMap.size) {
         hoverOverShapes(shapesMap, event, setSelectedShapeConfig, context);
       }
     }
   }
+
+  console.log(shapesMap);
 
   function handleMouseUp() {
     const { context } = canvasConfig;
 
     if (context && isDrawing && activeShape.current) {
       setDrawingConfig(initDrawingConfig);
-      context?.closePath();
+      context.closePath();
       shapeId.current = "";
 
       setShapesMap(shapesMap.set(activeShape.current.id, activeShape.current));
 
       activeShapeIds.current.push(activeShape.current.id);
       activeShape.current = undefined;
+
+      penCoordinates.current = [];
     } else if (selectedShapeConfig?.isActive && activeShape.current) {
       setSelectedShapeConfig(undefined);
       once.current = false;
@@ -196,7 +243,7 @@ function useCreateContext(
 
       canvas?.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [toDraw, isDrawing, selectedShapeConfig]);
+  }, [toDraw, isDrawing, selectedShapeConfig, shapesMap.size]);
 
   return canvasConfig;
 }

@@ -7,6 +7,7 @@ export enum ShapesEnum {
   Rectangle = "rectanlge",
   Line = "line",
   Text = "text",
+  Pen = "pen",
 }
 
 export type InitCoord = { x: number; y: number };
@@ -54,6 +55,12 @@ export type Text = {
   height: number;
 };
 
+export type PenCoordinate = { x: number; y: number };
+
+export type Pen = {
+  coordinates: Array<PenCoordinate>;
+};
+
 export type Shape<T extends ShapesEnum> = {
   id: string;
   type: T;
@@ -63,6 +70,8 @@ export type Shape<T extends ShapesEnum> = {
   ? Line
   : T extends ShapesEnum.Text
   ? Text
+  : T extends ShapesEnum.Pen
+  ? Pen
   : object);
 
 export enum ActionEnum {
@@ -82,5 +91,5 @@ export type SelectedShape<T extends ShapesEnum> = {
 export type ShapesMap = Map<string, Shape<ShapesEnum>>;
 
 export type RedoShape = Omit<Shape<ShapesEnum>, "coordinates"> & {
-  coordinate: RectangleCoord | LineCoord;
+  coordinate: RectangleCoord | LineCoord | PenCoordinate[];
 };

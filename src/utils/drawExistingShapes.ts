@@ -1,7 +1,7 @@
 import drawLine from "./drawLine";
 import drawRectangle from "./drawRectangle";
 import { Shape, ShapesEnum } from "../types";
-import { isLine, isRectangle, isText } from "./typeGuards";
+import { isLine, isPen, isRectangle, isText } from "./typeGuards";
 import drawText from "./drawText";
 
 function drawExistingShapes(
@@ -37,6 +37,22 @@ function drawExistingShapes(
           drawText(context, shape.text, x, y);
         }
 
+        break;
+      }
+
+      case ShapesEnum.Pen: {
+        if (isPen(shape)) {
+          const { coordinates } = shape;
+          const { x, y } = coordinates[0];
+          context.beginPath();
+          context.moveTo(x, y);
+
+          for (let i = 1; i < coordinates.length; i++) {
+            const { x, y } = coordinates[i];
+            context.lineTo(x, y);
+          }
+          context.stroke();
+        }
         break;
       }
 

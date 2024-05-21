@@ -93,3 +93,5 @@ export type ShapesMap = Map<string, Shape<ShapesEnum>>;
 export type RedoShape = Omit<Shape<ShapesEnum>, "coordinates"> & {
   coordinate: RectangleCoord | LineCoord | PenCoordinate[];
 };
+
+// generics

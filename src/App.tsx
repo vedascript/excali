@@ -14,9 +14,12 @@ import {
   initDrawingConfig,
 } from "./types";
 import drawExistingShapes from "./utils/drawExistingShapes";
+import { isNotPen, isPen, isRedoShapePen } from "./utils";
+
+import undoIcon from "./assets/undo.svg";
+import redoIcon from "./assets/redo.svg";
 
 import "./App.css";
-import { isNotPen, isPen, isRedoShapePen } from "./utils";
 
 function App() {
   const [drawingConfig, setDrawingConfig] =
@@ -42,17 +45,6 @@ function App() {
     const activeShapeId = activeShapeIds.current.pop() as string;
     const shapesMapClone = new Map(shapes);
     const activeShape = shapesMapClone.get(activeShapeId) as Shape<ShapesEnum>;
-
-    // if (isPen(activeShape)) {
-    //   setRedoShapes([...redoShapes, activeShape]);
-
-    //   shapesMapClone.delete(activeShapeId);
-    //   setShapesMap(shapesMapClone);
-
-    //   redrawCanvas(context as CanvasRenderingContext2D, shapesMapClone);
-
-    //   return;
-    // }
 
     let undoCoordinate:
       | RectangleCoord
@@ -153,9 +145,23 @@ function App() {
         activeShape={drawingConfig.toDraw}
         setToDraw={setDrawingConfig}
       />
-      <button onClick={() => undo(shapesMap, context)}>undo</button>{" "}
-      <button onClick={redo}>redo</button>
       <canvas ref={canvasRef}></canvas>
+
+      <section className="absolute right-4 bottom-6 flex gap-4 p-2 rounded-md z-20">
+        <button
+          onClick={() => undo(shapesMap, context)}
+          className="bg-link-active hover:bg-link-active"
+        >
+          <img src={undoIcon} />
+        </button>
+
+        <button
+          onClick={() => redo()}
+          className="bg-link-active hover:bg-link-active"
+        >
+          <img src={redoIcon} />
+        </button>
+      </section>
     </>
   );
 }

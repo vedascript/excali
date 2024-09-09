@@ -66,27 +66,7 @@ function useCreateContext(
       if (toDraw === ShapesEnum.Text) {
         handleDrawText(event, shapeId.current);
       } else if (toDraw === ShapesEnum.Pen && canvasConfig.context) {
-        //   const { context, canvasHeight, canvasWidth } = canvasConfig;
         penCoordinates.current = [{ x: event.offsetX, y: event.offsetY }];
-
-        // canvasConfig.context.beginPath();
-        // canvasConfig.context.moveTo(event.offsetX, event.offsetY);
-
-        // canvasConfig.context.moveTo(200, 400);
-        //   context.clearRect(0, 0, canvasWidth, canvasHeight);
-        //   drawExistingShapes(shapesMap, context);
-
-        //   penCoordinates.current.push({ x: event.offsetX, y: event.offsetY });
-        //   context.beginPath();
-        //   context.moveTo(
-        //     penCoordinates.current[0].x,
-        //     penCoordinates.current[0].y
-        //   );
-
-        //   penCoordinates.current.forEach((point) => {
-        //     context.lineTo(point.x, point.y);
-        //     context.stroke();
-        //   });
       }
     }
 
@@ -149,8 +129,6 @@ function useCreateContext(
       }
     }
   }
-
-  console.log(shapesMap);
 
   function handleMouseUp() {
     const { context } = canvasConfig;

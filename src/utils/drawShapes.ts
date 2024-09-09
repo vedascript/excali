@@ -3,7 +3,6 @@ import drawRectangle from "./drawRectangle";
 import {
   InitCoord,
   LineCoord,
-  PenCoordinate,
   RectangleCoord,
   Shape,
   ShapesEnum,
@@ -16,12 +15,10 @@ function drawShapes(
   event: MouseEvent,
   initCoord: InitCoord,
   shapeId: string,
-  movedShape: MutableRefObject<Shape<ShapesEnum>> | MutableRefObject<undefined>,
-  penCoordinates: PenCoordinate[]
+  movedShape: MutableRefObject<Shape<ShapesEnum>> | MutableRefObject<undefined>
 ) {
   const { x: x1, y: y1 } = initCoord;
   const { offsetX: x2, offsetY: y2 } = event;
-  console.log({ penCoordniates: penCoordinates });
 
   switch (toDraw) {
     case ShapesEnum.Rectangle: {

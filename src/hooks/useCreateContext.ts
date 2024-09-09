@@ -106,8 +106,7 @@ function useCreateContext(
           event,
           initCoord,
           shapeId.current,
-          activeShape,
-          penCoordinates.current
+          activeShape
         );
       }
     }

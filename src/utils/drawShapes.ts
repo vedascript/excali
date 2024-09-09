@@ -63,27 +63,6 @@ function drawShapes(
       break;
     }
 
-    // case ShapesEnum.Pen: {
-    //   context.beginPath();
-    //   context.moveTo(x1, y1);
-    //   context.lineTo(x2, y2);
-    //   context.stroke();
-
-    //   penCoordinates.push({ x: x2, y: y2 });
-
-    //   const pen: Shape<ShapesEnum.Pen> = {
-    //     id: shapeId,
-    //     type: ShapesEnum.Pen,
-    //     coordinates: [...penCoordinates],
-    //   };
-
-    //   if (movedShape) {
-    //     movedShape.current = pen;
-    //   }
-
-    //   break;
-    // }
-
     default:
       break;
   }

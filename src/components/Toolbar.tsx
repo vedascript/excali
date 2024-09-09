@@ -16,7 +16,7 @@ const Toolbar: FC<Props> = ({ activeShape, setToDraw }) => {
   }
 
   return (
-    <div className="container mx-auto rounded-md border-2 border-zinc-120 border-solid shadow-sm p-2 mt-5 max-w-screen-sm flex flex-row items-center gap-x-2">
+    <div className="flex w-fit mx-auto rounded-md border-2 border-zinc-120 border-solid shadow-sm p-2 my-5 items-center gap-2 absolute inset-x-0 z-10">
       <button
         className={`hover:bg-violet-300/30 rounded-md p-1.5 ${
           activeShape === ShapesEnum.Rectangle && "bg-red-400"

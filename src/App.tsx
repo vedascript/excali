@@ -140,7 +140,7 @@ function App() {
   }
 
   return (
-    <>
+    <div className="h-screen relative">
       <Toolbar
         activeShape={drawingConfig.toDraw}
         setToDraw={setDrawingConfig}
@@ -162,7 +162,7 @@ function App() {
           <img src={redoIcon} />
         </button>
       </section>
-    </>
+    </div>
   );
 }
 

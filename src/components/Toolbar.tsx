@@ -12,6 +12,12 @@ type Props = {
 const Toolbar: FC<Props> = ({ activeShape, setToDraw }) => {
   function setShapeToDraw(shape: ShapesEnum) {
     setToDraw((prev) => ({ ...prev, toDraw: shape }));
+
+    if (shape === ShapesEnum.Pen || shape === ShapesEnum.Text) {
+      document.body.style.cursor = "crosshair";
+    } else {
+      document.body.style.cursor = "default";
+    }
   }
 
   return (

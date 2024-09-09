@@ -133,7 +133,16 @@ function useCreateContext(
     const { context } = canvasConfig;
 
     if (context && isDrawing && activeShape.current) {
-      setDrawingConfig(initDrawingConfig);
+      const config =
+        drawingConfig.toDraw === ShapesEnum.Pen
+          ? ({
+              isDrawing: false,
+              initCoord: { x: 0, y: 0 },
+              toDraw: ShapesEnum.Pen,
+            } as DrawingConfig)
+          : initDrawingConfig;
+
+      setDrawingConfig(config);
       context.closePath();
       shapeId.current = "";
 

@@ -1,6 +1,6 @@
 function getTypingArea(event: MouseEvent) {
   const x1 = event.offsetX;
-  const y1 = event.offsetY + 80;
+  const y1 = event.offsetY;
 
   const textArea = document.createElement("span");
   textArea.setAttribute("role", "textbox");
@@ -13,8 +13,9 @@ function getTypingArea(event: MouseEvent) {
   textArea.style.minHeight = "16px";
   textArea.style.outline = "none";
   textArea.style.zIndex = "2";
-  textArea.style.font = "1.2rem 'Fira Sans', sans-serif";
-  textArea.style.border = "1px solid #000";
+  textArea.style.font = "16px sans-serif";
+  textArea.style.cursor = "text";
+
   const body = document.querySelector("body");
   body?.appendChild(textArea);
 
@@ -22,7 +23,7 @@ function getTypingArea(event: MouseEvent) {
     textArea.focus();
   }, 200);
 
-  return { typingArea: textArea, x1: event.offsetX - 3, y1: event.offsetY + 2 };
+  return { typingArea: textArea, x1: event.offsetX, y1: event.offsetY + 20 };
 }
 
 export default getTypingArea;

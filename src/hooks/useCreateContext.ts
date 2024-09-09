@@ -171,7 +171,7 @@ function useCreateContext(
         shapesMap.set(shapeId, {
           id: shapeId,
           type: ShapesEnum.Text,
-          coordinates: [{ x: x1, y: event.offsetY }],
+          coordinates: [{ x: x1, y: y1 }],
           text: typingArea.innerText,
           width: typingArea.clientWidth,
           height: typingArea.clientHeight,

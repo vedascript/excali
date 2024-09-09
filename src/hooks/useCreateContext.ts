@@ -112,7 +112,7 @@ function useCreateContext(
       }
     }
 
-    if (!isDrawing) {
+    if (!isDrawing && !toDraw) {
       if (selectedShapeConfig?.isActive && context) {
         context.clearRect(0, 0, canvasWidth, canvasHeight);
 

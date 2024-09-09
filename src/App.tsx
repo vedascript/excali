@@ -16,8 +16,7 @@ import {
 import drawExistingShapes from "./utils/drawExistingShapes";
 import { isNotPen, isPen, isRedoShapePen } from "./utils";
 
-import undoIcon from "./assets/undo.svg";
-import redoIcon from "./assets/redo.svg";
+import { undoIcon, redoIcon } from "./assets";
 
 import "./App.css";
 
@@ -147,17 +146,17 @@ function App() {
       />
       <canvas ref={canvasRef}></canvas>
 
-      <section className="absolute right-4 bottom-6 flex gap-4 p-2 rounded-md z-20">
+      <section className="absolute right-4 bottom-2 flex gap-4 p-2 rounded-md z-20">
         <button
           onClick={() => undo(shapesMap, context)}
-          className="bg-link-active hover:bg-link-active"
+          className="px-4 py-2 rounded-md border-solid border-2 border-zinc-100 shadow-sm"
         >
           <img src={undoIcon} />
         </button>
 
         <button
           onClick={() => redo()}
-          className="bg-link-active hover:bg-link-active"
+          className="px-4 py-2 rounded-md border-solid border-2 border-zinc-100 shadow-sm"
         >
           <img src={redoIcon} />
         </button>
